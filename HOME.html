@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <link rel="stylesheet" href="HOME.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome</h1>
+        <div class="dropdown">
+            <button class="dropbtn">my project</button>
+            <div class="dropdown-content">
+                <h2><a href="products-crud-ui.html">ระบบจัดการสินค้า</a></h2>
+                <h2><a href="gg.html">ระบบจัดการสินค้า</a></h2>
+            </div>
+        </div>
+    </div>
+    <div class="di">
+        <div class="button">
+            <button id="checkJwtBtn" class="btn">เช็ค JWT</button>
+            <button id="logoutBtn" class="btn">ออกจากระบบ</button>
+        </div>
+    </div>
+
+    <script>
+        const name = localStorage.getItem("name");
+        const email = localStorage.getItem("email");
+        console.log(`Name: ${name}, Email: ${email}`);
+
+        function verifyJWT(token, secret) {
+            try {
+                const [header, body, signature] = token.split(".");
+                const validSignature = btoa(`${header}.${body}.${secret}`);
+                if (signature !== validSignature) {
+                    return { valid: false, reason: "Invalid signature" };
+                }
+                const payload = JSON.parse(atob(body));
+                if (Date.now() > payload.exp * 1000) { // exp เป็น timestamp (ต้อง * 1000)
+                    return { valid: false, reason: "Token expired" };
+                }
+                return { valid: true, payload };
+            } catch (error) {
+                return { valid: false, reason: "Invalid token format" };
+            }
+        }
+
+        document.getElementById("checkJwtBtn").addEventListener("click", function () {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("ไม่เจอโทเค็น กรุณาล็อคอิน.");
+                window.location.href = "index.html";
+                return;
+            }
+            const result = verifyJWT(token, "mysecret");
+            if (!result.valid) {
+                alert(result.reason === "Token expired" ? "โทเค็นหมดอายุ กรุณาล็อคอินใหม่อีกครั้ง" : "Invalid token. Please login again.");
+                localStorage.removeItem("token");
+                window.location.href = "index.html";
+            } else {
+                alert(`Token is valid! Welcome back, ${result.payload.username}`);
+            }
+        });
+
+    
